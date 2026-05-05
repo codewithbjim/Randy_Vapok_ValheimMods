@@ -19,6 +19,8 @@ public class MinimapController : MonoBehaviour
     public static readonly Dictionary<string, AreaPinInfo> BountyPins = new();
     public static bool DebugMode;
 
+    private static GameObject _epicLootToggleContainer;
+
     public virtual void Awake()
     {
         _minimap = GetComponent<Minimap>();
@@ -80,6 +82,7 @@ public class MinimapController : MonoBehaviour
         MinimapPinQueue.Clear();
         TreasureMapPins.Clear();
         BountyPins.Clear();
+        _epicLootToggleContainer = null;
     }
 
     private void SetupToggles()
@@ -113,6 +116,32 @@ public class MinimapController : MonoBehaviour
         treasureToggle.SetIcon(EpicAssets.MapIconTreasureMap);
         treasureToggle.SetGamepadKey("JoyRTrigger");
         treasureToggle.SetLabel("$mod_epicloot_merchant_treasuremaps");
+
+        _epicLootToggleContainer = container;
+        RefreshEpicLootToggleContainerVisibility();
+    }
+
+    /// <summary>
+    /// When not connected to a world, the container stays active. When connected and Adventure Mode is disabled, the container is hidden.
+    /// </summary>
+    public static void RefreshEpicLootToggleContainerVisibility()
+    {
+        if (_epicLootToggleContainer == null)
+        {
+            return;
+        }
+
+        _epicLootToggleContainer.SetActive(ShouldShowEpicLootMinimapToggleContainer());
+    }
+
+    private static bool ShouldShowEpicLootMinimapToggleContainer()
+    {
+        if (ZNet.instance == null)
+        {
+            return true;
+        }
+
+        return EpicLoot.IsAdventureModeEnabled();
     }
 
     private static void ToggleBounties(bool show)
